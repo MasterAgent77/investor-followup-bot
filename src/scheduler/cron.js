@@ -10,13 +10,15 @@ const { runStaleAlerts } = require('./staleAlerts');
 // In-memory cache for polling Last Contact Date changes
 let lastContactCache = {};
 
-function setupCronJobs(slackClient, channelId) {
+function setupCronJobs(slackClient, channelId, recordCronActivity) {
+  const recordActivity = recordCronActivity || (() => {});
   console.log('[Cron] Setting up scheduled jobs...');
 
   // ── 1. Daily scan + going cold check: 9:00 AM EST, Mon-Fri ──
   cron.schedule(
     '0 9 * * *',
     async () => {
+      recordActivity();
       try {
         console.log('[Cron] Running daily scan...');
         await runDailyScan(slackClient, channelId);
@@ -40,6 +42,7 @@ function setupCronJobs(slackClient, channelId) {
   cron.schedule(
     '0 8 * * 1',
     async () => {
+      recordActivity();
       try {
         console.log('[Cron] Running weekly summary...');
         await runWeeklySummary(slackClient, channelId);
@@ -55,6 +58,7 @@ function setupCronJobs(slackClient, channelId) {
   cron.schedule(
     '30 8 * * 1',
     async () => {
+      recordActivity();
       try {
         console.log('[Cron] Running stale alerts...');
         await runStaleAlerts(slackClient, channelId);
@@ -70,6 +74,7 @@ function setupCronJobs(slackClient, channelId) {
   cron.schedule(
     '*/15 * * * *',
     async () => {
+      recordActivity();
       try {
         console.log('[Cron] Polling for Last Contact Date changes...');
 

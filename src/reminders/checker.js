@@ -11,11 +11,14 @@ const CHECK_INTERVAL_MS = 60 * 1000; // every 60 seconds
  *
  * @param {import('@slack/web-api').WebClient} slackClient - Slack WebClient instance
  * @param {string} channelId - Slack channel ID to post notifications to
+ * @param {Function} recordCronActivity - Callback to reset the watchdog timer
  */
-function startReminderChecker(slackClient, channelId) {
+function startReminderChecker(slackClient, channelId, recordCronActivity) {
+  const recordActivity = recordCronActivity || (() => {});
   console.log('[reminders/checker] Starting reminder checker (every 60s)');
 
   setInterval(async () => {
+    recordActivity();
     try {
       const dueReminders = getDueReminders();
 
